@@ -1,18 +1,21 @@
 package com.example.juegotriqui
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import kotlin.random.Random
+import com.example.juegotriqui.ui.theme.TicTacToeGame
 
 class MainActivity : AppCompatActivity() {
 
-    private var currentPlayer = "X" // El jugador siempre será "X", la máquina será "O"
-    private val board = Array(3) { Array(3) { "" } }
+    private val game = TicTacToeGame()
     private lateinit var buttons: Array<Button>
-    private lateinit var restartButton: Button
     private lateinit var gameMessage: TextView
+
+    private var currentPlayer = "X"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +27,6 @@ class MainActivity : AppCompatActivity() {
             findViewById(R.id.button7), findViewById(R.id.button8), findViewById(R.id.button9)
         )
 
-        restartButton = findViewById(R.id.restartButton)
         gameMessage = findViewById(R.id.gameMessage)
 
         buttons.forEachIndexed { index, button ->
@@ -33,8 +35,29 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        restartButton.setOnClickListener {
-            resetGame()
+        resetGame()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.options_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.new_game -> {
+                resetGame()
+                true
+            }
+            R.id.ai_difficulty -> {
+                showDifficultyDialog()
+                true
+            }
+            R.id.quit -> {
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -42,90 +65,71 @@ class MainActivity : AppCompatActivity() {
         val row = index / 3
         val col = index % 3
 
-        if (board[row][col].isNotEmpty()) {
-            gameMessage.text = "Casilla ocupada, elige otra"
-            return
-        }
+        if (game.makeMove(currentPlayer, row, col)) {
+            // Establecer el texto y el color basado en el jugador actual
+            button.text = currentPlayer
+            button.setTextColor(
+                if (currentPlayer == "X")
+                    resources.getColor(R.color.colorX, theme)
+                else
+                    resources.getColor(R.color.colorO, theme)
+            )
 
-        board[row][col] = currentPlayer
-        button.text = currentPlayer
-        button.setTextColor(resources.getColor(R.color.colorX, theme))
+            if (game.isWinner(currentPlayer)) {
+                gameMessage.text = "¡Jugador $currentPlayer ganó!"
+                disableButtons()
+            } else if (isBoardFull()) {
+                gameMessage.text = "¡Empate!"
+            } else {
+                currentPlayer = if (currentPlayer == "X") "O" else "X"
+                if (currentPlayer == "O") {
+                    // Movimiento de la máquina
+                    val (aiRow, aiCol) = game.getComputerMove()
+                    val aiButton = buttons[aiRow * 3 + aiCol]
+                    game.makeMove(currentPlayer, aiRow, aiCol)
+                    aiButton.text = currentPlayer
+                    aiButton.setTextColor(resources.getColor(R.color.colorO, theme))
 
-        if (checkWinner()) {
-            gameMessage.text = "¡Jugador ganó!"
-            showRestartButton()
-        } else if (isBoardFull()) {
-            gameMessage.text = "¡Empate!"
-            showRestartButton()
-        } else {
-            currentPlayer = "O"
-            gameMessage.text = "Turno de la máquina"
-            handleMachineMove() // Llamada al movimiento de la máquina
-        }
-    }
-
-    private fun handleMachineMove() {
-        val emptySpaces = mutableListOf<Pair<Int, Int>>()
-
-        // Encontrar todas las casillas vacías
-        for (i in 0..2) {
-            for (j in 0..2) {
-                if (board[i][j].isEmpty()) {
-                    emptySpaces.add(Pair(i, j))
+                    if (game.isWinner("O")) {
+                        gameMessage.text = "¡La máquina ganó!"
+                        disableButtons()
+                    }
+                    currentPlayer = "X"
                 }
             }
         }
-
-        if (emptySpaces.isNotEmpty()) {
-            val (row, col) = emptySpaces[Random.nextInt(emptySpaces.size)] // Elegir una casilla aleatoria
-            board[row][col] = currentPlayer
-            val buttonIndex = row * 3 + col
-            val button = buttons[buttonIndex]
-
-            button.text = currentPlayer
-            button.setTextColor(resources.getColor(R.color.colorO, theme))
-
-            if (checkWinner()) {
-                gameMessage.text = "¡La máquina ganó!"
-                showRestartButton()
-            } else if (isBoardFull()) {
-                gameMessage.text = "¡Empate!"
-                showRestartButton()
-            } else {
-                currentPlayer = "X"
-                gameMessage.text = "Turno del jugador"
-            }
-        }
     }
 
-    private fun checkWinner(): Boolean {
-        for (i in 0..2) {
-            if (board[i][0] == currentPlayer && board[i][1] == currentPlayer && board[i][2] == currentPlayer) return true
-            if (board[0][i] == currentPlayer && board[1][i] == currentPlayer && board[2][i] == currentPlayer) return true
-        }
-        if (board[0][0] == currentPlayer && board[1][1] == currentPlayer && board[2][2] == currentPlayer) return true
-        if (board[0][2] == currentPlayer && board[1][1] == currentPlayer && board[2][0] == currentPlayer) return true
-
-        return false
-    }
-
-    private fun isBoardFull(): Boolean {
-        return board.all { row -> row.all { it.isNotEmpty() } }
-    }
-
-    private fun showRestartButton() {
-        restartButton.visibility = Button.VISIBLE
-        buttons.forEach { it.isEnabled = false }
-    }
 
     private fun resetGame() {
-        board.forEach { row -> row.fill("") }
+        game.resetGame()
         buttons.forEach { button ->
             button.text = ""
             button.isEnabled = true
         }
         currentPlayer = "X"
-        gameMessage.text = "Turno del jugador"
-        restartButton.visibility = Button.GONE
+        gameMessage.text = "Turno de $currentPlayer"
+    }
+
+    private fun isBoardFull(): Boolean {
+        return game.getBoard().all { row -> row.all { it.isNotEmpty() } }
+    }
+
+    private fun disableButtons() {
+        buttons.forEach { it.isEnabled = false }
+    }
+
+    private fun showDifficultyDialog() {
+        val levels = TicTacToeGame.DifficultyLevel.values()
+        val selected = levels.indexOf(game.getDifficultyLevel())
+
+        AlertDialog.Builder(this)
+            .setTitle("Selecciona la dificultad")
+            .setSingleChoiceItems(levels.map { it.name }.toTypedArray(), selected) { dialog, which ->
+                game.setDifficultyLevel(levels[which])
+                dialog.dismiss()
+            }
+            .create()
+            .show()
     }
 }
