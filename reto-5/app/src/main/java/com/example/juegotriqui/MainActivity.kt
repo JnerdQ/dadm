@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statsTextView: TextView
 
     private var currentPlayer = "X"
+    private var gameOver = false // Variable para bloquear jugadas después de terminar el juego
 
     // Variables para los sonidos
     private var playerMoveSound: MediaPlayer? = null
@@ -53,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
             if (currentPlayer == "X" && game.getBoard()[row][col].isEmpty()) {
                 handlePlayerMove(row, col)
-                if (!game.isWinner("X") && !isBoardFull()) {
+                if (!gameOver && !game.isWinner("X") && !isBoardFull()) {
                     handleAIMove()
                 }
             }
@@ -85,17 +86,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handlePlayerMove(row: Int, col: Int) {
+        if (gameOver) return // No permitir movimientos si el juego ha terminado
+
         if (game.makeMove(currentPlayer, row, col)) {
             playerMoveSound?.start() // Reproducir sonido de movimiento del jugador
             if (game.isWinner(currentPlayer)) {
                 gameMessage.text = "¡Jugador $currentPlayer ganó!"
+                gameOver = true // Marcar el juego como terminado
                 val handler = android.os.Handler()
                 handler.postDelayed({
                     winSound?.start() // Reproducir sonido de victoria después de un delay
-                }, 700) //
+                }, 700)
                 updateStats(winner = currentPlayer)
             } else if (isBoardFull()) {
                 gameMessage.text = "¡Empate!"
+                gameOver = true // Marcar el juego como terminado
                 updateStats(winner = null)
             } else {
                 currentPlayer = if (currentPlayer == "X") "O" else "X"
@@ -105,10 +110,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleAIMove() {
-        // Mostrar un mensaje indicando que la IA está pensando (opcional)
-        gameMessage.text = "La máquina está pensando..."
+        if (gameOver) return // No permitir movimientos si el juego ha terminado
 
-        // Crear un Handler para el retraso
+        gameMessage.text = "La máquina está pensando..."
         val handler = android.os.Handler()
         handler.postDelayed({
             val (aiRow, aiCol) = game.getComputerMove()
@@ -117,12 +121,14 @@ class MainActivity : AppCompatActivity() {
 
             if (game.isWinner("O")) {
                 gameMessage.text = "¡La máquina ganó!"
+                gameOver = true // Marcar el juego como terminado
                 handler.postDelayed({
-                    loseSound?.start() // Reproducir sonido de victoria después de un delay
-                }, 700) //
+                    loseSound?.start() // Reproducir sonido de derrota después de un delay
+                }, 700)
                 updateStats(winner = "O")
             } else if (isBoardFull()) {
                 gameMessage.text = "¡Empate!"
+                gameOver = true // Marcar el juego como terminado
                 updateStats(winner = null)
             } else {
                 currentPlayer = "X"
@@ -132,10 +138,10 @@ class MainActivity : AppCompatActivity() {
         }, 2000) // 2000 ms = 2 segundos
     }
 
-
     private fun resetGame() {
         game.resetGame()
         currentPlayer = "X"
+        gameOver = false // Reiniciar el estado del juego
         gameMessage.text = "Turno de $currentPlayer"
         boardView.invalidate()
     }
@@ -175,8 +181,4 @@ class MainActivity : AppCompatActivity() {
         winSound?.release()
         loseSound?.release()
     }
-
-
-
-
 }
