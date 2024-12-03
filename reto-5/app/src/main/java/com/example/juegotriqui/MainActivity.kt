@@ -1,5 +1,7 @@
 package com.example.juegotriqui
 
+import android.annotation.SuppressLint
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -21,6 +23,13 @@ class MainActivity : AppCompatActivity() {
 
     private var currentPlayer = "X"
 
+    // Variables para los sonidos
+    private var playerMoveSound: MediaPlayer? = null
+    private var aiMoveSound: MediaPlayer? = null
+    private var winSound: MediaPlayer? = null
+    private var loseSound: MediaPlayer? = null
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -31,6 +40,12 @@ class MainActivity : AppCompatActivity() {
 
         gameMessage = findViewById(R.id.gameMessage)
         statsTextView = findViewById(R.id.stats)
+
+        // Inicializar sonidos
+        playerMoveSound = MediaPlayer.create(this, R.raw.player_move)
+        aiMoveSound = MediaPlayer.create(this, R.raw.ai_move)
+        winSound = MediaPlayer.create(this, R.raw.winning)
+        loseSound = MediaPlayer.create(this, R.raw.lose)
 
         boardView.setOnTouchListener { _, event ->
             val col = (event.x / boardView.getCellWidth()).toInt()
@@ -71,8 +86,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun handlePlayerMove(row: Int, col: Int) {
         if (game.makeMove(currentPlayer, row, col)) {
+            playerMoveSound?.start() // Reproducir sonido de movimiento del jugador
             if (game.isWinner(currentPlayer)) {
                 gameMessage.text = "¡Jugador $currentPlayer ganó!"
+                val handler = android.os.Handler()
+                handler.postDelayed({
+                    winSound?.start() // Reproducir sonido de victoria después de un delay
+                }, 700) //
                 updateStats(winner = currentPlayer)
             } else if (isBoardFull()) {
                 gameMessage.text = "¡Empate!"
@@ -85,16 +105,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleAIMove() {
-        val (aiRow, aiCol) = game.getComputerMove()
-        game.makeMove("O", aiRow, aiCol)
+        // Mostrar un mensaje indicando que la IA está pensando (opcional)
+        gameMessage.text = "La máquina está pensando..."
 
-        if (game.isWinner("O")) {
-            gameMessage.text = "¡La máquina ganó!"
-            updateStats(winner = "O")
-        }
-        currentPlayer = "X"
-        boardView.invalidate()
+        // Crear un Handler para el retraso
+        val handler = android.os.Handler()
+        handler.postDelayed({
+            val (aiRow, aiCol) = game.getComputerMove()
+            game.makeMove("O", aiRow, aiCol)
+            aiMoveSound?.start() // Reproducir sonido de movimiento de la IA
+
+            if (game.isWinner("O")) {
+                gameMessage.text = "¡La máquina ganó!"
+                handler.postDelayed({
+                    loseSound?.start() // Reproducir sonido de victoria después de un delay
+                }, 700) //
+                updateStats(winner = "O")
+            } else if (isBoardFull()) {
+                gameMessage.text = "¡Empate!"
+                updateStats(winner = null)
+            } else {
+                currentPlayer = "X"
+                gameMessage.text = "Turno del jugador $currentPlayer"
+            }
+            boardView.invalidate() // Actualizar el tablero
+        }, 2000) // 2000 ms = 2 segundos
     }
+
 
     private fun resetGame() {
         game.resetGame()
@@ -129,4 +166,17 @@ class MainActivity : AppCompatActivity() {
             .create()
             .show()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Liberar recursos de MediaPlayer
+        playerMoveSound?.release()
+        aiMoveSound?.release()
+        winSound?.release()
+        loseSound?.release()
+    }
+
+
+
+
 }
