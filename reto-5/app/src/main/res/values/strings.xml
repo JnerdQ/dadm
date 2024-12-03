@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">JuegoTriqui</string>
+    <string name="jugar_de_nuevo">Jugar de Nuevo</string>
+    <string name="turno_de_x">Turno de X</string>
+</resources>
