@@ -30,6 +30,9 @@ class MainActivity : AppCompatActivity() {
     private var winSound: MediaPlayer? = null
     private var loseSound: MediaPlayer? = null
 
+    // Variable para manejar el mute
+    private var isMuted = false // Indica si los sonidos están silenciados
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +80,10 @@ class MainActivity : AppCompatActivity() {
                 showDifficultyDialog()
                 true
             }
+            R.id.mute_sounds -> {
+                toggleMute(item)
+                true
+            }
             R.id.quit -> {
                 finish()
                 true
@@ -85,17 +92,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun toggleMute(item: MenuItem) {
+        isMuted = !isMuted
+        item.title = if (isMuted) "Activar Sonidos" else "Silenciar Sonidos"
+    }
+
     private fun handlePlayerMove(row: Int, col: Int) {
         if (gameOver) return // No permitir movimientos si el juego ha terminado
 
         if (game.makeMove(currentPlayer, row, col)) {
-            playerMoveSound?.start() // Reproducir sonido de movimiento del jugador
+            if (!isMuted) playerMoveSound?.start() // Reproducir sonido de movimiento del jugador
             if (game.isWinner(currentPlayer)) {
                 gameMessage.text = "¡Jugador $currentPlayer ganó!"
                 gameOver = true // Marcar el juego como terminado
                 val handler = android.os.Handler()
                 handler.postDelayed({
-                    winSound?.start() // Reproducir sonido de victoria después de un delay
+                    if (!isMuted) winSound?.start() // Reproducir sonido de victoria después de un delay
                 }, 700)
                 updateStats(winner = currentPlayer)
             } else if (isBoardFull()) {
@@ -117,13 +129,13 @@ class MainActivity : AppCompatActivity() {
         handler.postDelayed({
             val (aiRow, aiCol) = game.getComputerMove()
             game.makeMove("O", aiRow, aiCol)
-            aiMoveSound?.start() // Reproducir sonido de movimiento de la IA
+            if (!isMuted) aiMoveSound?.start() // Reproducir sonido de movimiento de la IA
 
             if (game.isWinner("O")) {
                 gameMessage.text = "¡La máquina ganó!"
                 gameOver = true // Marcar el juego como terminado
                 handler.postDelayed({
-                    loseSound?.start() // Reproducir sonido de derrota después de un delay
+                    if (!isMuted) loseSound?.start() // Reproducir sonido de derrota después de un delay
                 }, 700)
                 updateStats(winner = "O")
             } else if (isBoardFull()) {
