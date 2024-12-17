@@ -11,8 +11,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.juegotriqui.ui.theme.BoardView
 import com.example.juegotriqui.ui.theme.TicTacToeGame
 import com.google.firebase.database.*
+import com.google.firebase.database.ktx.getValue
 
-class MainActivity : AppCompatActivity() {
+class MainActivityOnline : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
     private lateinit var gamesRef: DatabaseReference
     private lateinit var boardView: BoardView
@@ -177,9 +178,9 @@ class MainActivity : AppCompatActivity() {
                     game.setBoard(board)
                     boardView.invalidate()
                 }
-                this@MainActivity.currentPlayer = currentPlayer ?: "X"
-                this@MainActivity.gameOver = gameOver
-                isMyTurn = (currentPlayer == this@MainActivity.currentPlayer)
+                this@MainActivityOnline.currentPlayer = currentPlayer ?: "X"
+                this@MainActivityOnline.gameOver = gameOver
+                isMyTurn = (currentPlayer == this@MainActivityOnline.currentPlayer)
             }
 
             override fun onCancelled(error: DatabaseError) {

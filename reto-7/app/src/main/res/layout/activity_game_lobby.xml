@@ -13,13 +13,14 @@
         android:text="Game Lobby"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp" />
 
     <!-- List of available games -->
     <ListView
         android:id="@+id/gamesListView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="469dp"
         android:layout_weight="1"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp" />
@@ -27,16 +28,22 @@
     <!-- Create New Game Button -->
     <Button
         android:id="@+id/createGameButton"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Create New Game"
-        android:layout_marginTop="8dp" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="8dp" />
 
     <!-- Refresh Button -->
     <Button
         android:id="@+id/refreshButton"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Refresh"
-        android:layout_marginTop="16dp" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="8dp" />
 </LinearLayout>
