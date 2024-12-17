@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ListView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.*
@@ -24,11 +24,9 @@ class GameLobbyActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game_lobby)
 
-        // Initialize Firebase
+        // Initialize Firebase and UI elements
         database = FirebaseDatabase.getInstance()
         gamesRef = database.getReference("games")
-
-        // Initialize UI elements
         gamesListView = findViewById(R.id.gamesListView)
         createGameButton = findViewById(R.id.createGameButton)
         refreshButton = findViewById(R.id.refreshButton)
@@ -36,17 +34,13 @@ class GameLobbyActivity : AppCompatActivity() {
         // Load available games
         loadAvailableGames()
 
-        // Create a new game when the button is clicked
+        // Set up button listeners
         createGameButton.setOnClickListener {
             showCreateGameDialog()
         }
-
-        // Refresh the game list
         refreshButton.setOnClickListener {
             loadAvailableGames()
         }
-
-        // Join a selected game
         gamesListView.setOnItemClickListener { _, _, position, _ ->
             val (_, gameId) = availableGames[position]
             joinGame(gameId)
@@ -64,11 +58,15 @@ class GameLobbyActivity : AppCompatActivity() {
                     val gameId = gameSnapshot.key
                     val isActive = gameSnapshot.child("isActive").getValue(Boolean::class.java) ?: false
 
-                    // Use GenericTypeIndicator to handle nested Map types for playerO
+                    // Safely parse playerO as a Map or null
                     val playerOType = object : GenericTypeIndicator<Map<String, String>>() {}
-                    val playerO = gameSnapshot.child("playerO").getValue(playerOType)
+                    val playerO = try {
+                        gameSnapshot.child("playerO").getValue(playerOType)
+                    } catch (e: Exception) {
+                        null // Handle invalid data gracefully
+                    }
 
-                    // Only include games where playerO is null and the game is active
+                    // Only include games that are active and without a player O
                     if (gameId != null && isActive && playerO == null) {
                         val gameName = gameSnapshot.child("name").getValue(String::class.java) ?: "Unnamed Game"
                         availableGames.add(Pair(gameName, gameId))
@@ -78,11 +76,10 @@ class GameLobbyActivity : AppCompatActivity() {
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@GameLobbyActivity, "Error loading games: ${error.message}", Toast.LENGTH_SHORT).show()
+                showError("Failed to load games: ${error.message}")
             }
         })
     }
-
 
     /**
      * Update the ListView with the available games.
@@ -91,7 +88,7 @@ class GameLobbyActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(
             this,
             android.R.layout.simple_list_item_1,
-            availableGames.map { "${it.first} (ID: ${it.second})" }
+            availableGames.map { it.first } // Display only the game name
         )
         gamesListView.adapter = adapter
     }
@@ -103,7 +100,7 @@ class GameLobbyActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Create New Game")
 
-        val input = android.widget.EditText(this)
+        val input = EditText(this)
         input.hint = "Enter Game Name"
         builder.setView(input)
 
@@ -128,17 +125,14 @@ class GameLobbyActivity : AppCompatActivity() {
             "board" to listOf(listOf("", "", ""), listOf("", "", ""), listOf("", "", "")),
             "currentPlayer" to "X",
             "gameOver" to false,
-            "winner" to null,
-            "isActive" to true,
-            "createdAt" to System.currentTimeMillis(),
-            "moves" to emptyList<Map<String, Any>>() // Empty move list
+            "isActive" to true
         )
         newGameRef.setValue(initialGameState)
             .addOnSuccessListener {
                 navigateToGame(gameId!!, "X") // Navigate as Player X
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Failed to create a new game.", Toast.LENGTH_SHORT).show()
+                showError("Failed to create a new game.")
             }
     }
 
@@ -154,7 +148,7 @@ class GameLobbyActivity : AppCompatActivity() {
                 navigateToGame(gameId, "O") // Navigate as Player O
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Failed to join the game.", Toast.LENGTH_SHORT).show()
+                showError("Failed to join the game.")
             }
     }
 
@@ -166,5 +160,16 @@ class GameLobbyActivity : AppCompatActivity() {
         intent.putExtra("GAME_ID", gameId)
         intent.putExtra("PLAYER", player)
         startActivity(intent)
+    }
+
+    /**
+     * Show an error dialog with the given message.
+     */
+    private fun showError(message: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Error")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .show()
     }
 }
