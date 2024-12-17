@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/new_game"
+        android:title="Nuevo Juego" />
+
+    <item
+        android:id="@+id/ai_difficulty"
+        android:title="Dificultad" />
+
+    <item
+        android:id="@+id/mute_sounds"
+        android:title="Silenciar Sonidos"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <!-- New Quit Game Option -->
+    <item
+        android:id="@+id/quit_game"
+        android:title="Salir del Juego"
+        android:orderInCategory="200"
+        app:showAsAction="never" />
+</menu>

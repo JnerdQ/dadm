@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1082926237074",
+    "project_id": "triqui-c3542",
+    "storage_bucket": "triqui-c3542.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1082926237074:android:787fdc0eab0ea809732d4b",
+        "android_client_info": {
+          "package_name": "com.example.juegotriqui"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXiNtc_N493o4R5C4kR-nPyJZh4iD1f1Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
