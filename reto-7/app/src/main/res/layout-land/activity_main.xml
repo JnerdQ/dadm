@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivityOnline">
 
     <!-- Game Board -->
     <com.example.juegotriqui.ui.theme.BoardView
@@ -39,7 +39,7 @@
             android:id="@+id/gameMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/turno_de_x"
+            android:text="@string/x_turn"
             android:textAlignment="center"
             android:textSize="24sp"
             android:textStyle="bold"

@@ -1,6 +1,5 @@
 package com.example.juegotriqui
 
-import android.content.Intent
 import android.content.SharedPreferences
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -11,57 +10,45 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.juegotriqui.ui.theme.BoardView
 import com.example.juegotriqui.ui.theme.TicTacToeGame
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.getValue
 
 class MainActivityOnline : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
     private lateinit var gamesRef: DatabaseReference
     private lateinit var boardView: BoardView
     private lateinit var gameMessage: TextView
-    private lateinit var statsTextView: TextView
     private lateinit var sharedPreferences: SharedPreferences
 
     private val game = TicTacToeGame()
-    private var userWins = 0
-    private var aiWins = 0
-    private var draws = 0
-    private var gameOver = false
     private var isMuted = false
     private var playerMoveSound: MediaPlayer? = null
     private var winSound: MediaPlayer? = null
     private var loseSound: MediaPlayer? = null
+    private var gameOver = false
     private var isMyTurn = false
-    private var currentPlayer = "X"
+    private var currentPlayer = "Multiplayer Game " // Define el jugador actual
     private var gameId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main_online)
 
-        // Initialize Firebase
+        // Inicializar Firebase
         database = FirebaseDatabase.getInstance()
         gamesRef = database.getReference("games")
 
-        // Initialize Views
+        // Inicializar vistas
         boardView = findViewById(R.id.board)
         boardView.setGame(game)
         boardView.initialize(R.drawable.x_image, R.drawable.o_image)
 
         gameMessage = findViewById(R.id.gameMessage)
-        statsTextView = findViewById(R.id.stats)
 
-        // Initialize Sounds
+        // Inicializar sonidos
         playerMoveSound = MediaPlayer.create(this, R.raw.player_move)
         winSound = MediaPlayer.create(this, R.raw.winning)
         loseSound = MediaPlayer.create(this, R.raw.lose)
 
-        // Persistent Data
-        sharedPreferences = getSharedPreferences("TicTacToePrefs", MODE_PRIVATE)
-        userWins = sharedPreferences.getInt("userWins", 0)
-        aiWins = sharedPreferences.getInt("aiWins", 0)
-        draws = sharedPreferences.getInt("draws", 0)
-
-        // Handle Intent Extras
+        // Manejar datos de intent
         gameId = intent.getStringExtra("GAME_ID")
         currentPlayer = intent.getStringExtra("PLAYER") ?: "X"
 
@@ -82,48 +69,34 @@ class MainActivityOnline : AppCompatActivity() {
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        with(sharedPreferences.edit()) {
-            putInt("userWins", userWins)
-            putInt("aiWins", aiWins)
-            putInt("draws", draws)
-            apply()
-        }
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.options_menu, menu)
-        menu.add(0, Menu.FIRST, Menu.NONE, "Back to Lobby")
+        menu.add(0, R.id.mute_sounds, Menu.NONE, if (isMuted) "Activate Sounds" else "Mute Sounds")
         menu.add(0, R.id.quit_game, Menu.NONE, "Quit Game")
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.new_game -> {
-                resetGame()
-                true
-            }
             R.id.mute_sounds -> {
                 toggleMute(item)
                 true
             }
-            R.id.quit_game -> { // Quit Game and delete it
-                if (gameId != null) {
-                    gamesRef.child(gameId!!).removeValue()
-                }
-                finish()
+            R.id.quit_game -> {
+                quitGame()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-
     private fun toggleMute(item: MenuItem) {
         isMuted = !isMuted
         item.title = if (isMuted) "Activate Sounds" else "Mute Sounds"
+    }
+
+    private fun quitGame() {
+        gameId?.let { gamesRef.child(it).removeValue() }
+        finish()
     }
 
     private fun handlePlayerMove(row: Int, col: Int) {
@@ -150,7 +123,6 @@ class MainActivityOnline : AppCompatActivity() {
             "isActive" to true
         )
         newGameRef.setValue(initialGameState)
-        currentPlayer = "X"
         isMyTurn = true
         listenForGameUpdates()
     }
@@ -158,8 +130,6 @@ class MainActivityOnline : AppCompatActivity() {
     private fun joinGame(gameId: String) {
         this.gameId = gameId
         gamesRef.child(gameId).child("playerO").setValue("user2")
-        gamesRef.child(gameId).child("isActive").setValue(true)
-        currentPlayer = "O"
         isMyTurn = false
         listenForGameUpdates()
     }
@@ -172,15 +142,14 @@ class MainActivityOnline : AppCompatActivity() {
                     ?.map { it.toTypedArray() }
                     ?.toTypedArray()
                 val currentPlayer = snapshot.child("currentPlayer").getValue(String::class.java)
-                val gameOver = snapshot.child("gameOver").getValue(Boolean::class.java) ?: false
+                gameOver = snapshot.child("gameOver").getValue(Boolean::class.java) ?: false
 
                 if (board != null) {
                     game.setBoard(board)
                     boardView.invalidate()
                 }
                 this@MainActivityOnline.currentPlayer = currentPlayer ?: "X"
-                this@MainActivityOnline.gameOver = gameOver
-                isMyTurn = (currentPlayer == this@MainActivityOnline.currentPlayer)
+                isMyTurn = (this@MainActivityOnline.currentPlayer == currentPlayer)
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -209,12 +178,5 @@ class MainActivityOnline : AppCompatActivity() {
             if (!isMuted) loseSound?.start()
             gameOver = true
         }
-    }
-
-    private fun resetGame() {
-        game.resetGame()
-        gameOver = false
-        gameMessage.text = ""
-        boardView.invalidate()
     }
 }

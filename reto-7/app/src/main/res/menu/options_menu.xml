@@ -4,22 +4,22 @@
 
     <item
         android:id="@+id/new_game"
-        android:title="Nuevo Juego" />
+        android:title="New Game" />
 
     <item
         android:id="@+id/ai_difficulty"
-        android:title="Dificultad" />
+        android:title="Difficulty" />
 
     <item
         android:id="@+id/mute_sounds"
-        android:title="Silenciar Sonidos"
+        android:title="Mute sounds"
         android:orderInCategory="100"
         app:showAsAction="never" />
 
     <!-- New Quit Game Option -->
     <item
         android:id="@+id/quit_game"
-        android:title="Salir del Juego"
+        android:title="Quit game"
         android:orderInCategory="200"
         app:showAsAction="never" />
 </menu>

@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">JuegoTriqui</string>
-    <string name="jugar_de_nuevo">Jugar de Nuevo</string>
-    <string name="turno_de_x">Turno de X</string>
+    <string name="app_name">Tic-Tac-Toe</string>
+    <string name="jugar_de_nuevo">Play again</string>
+    <string name="x_turn">X Turn</string>
+    <string name="multiplayer">Multiplayer Game</string>
 </resources>

@@ -76,7 +76,7 @@ class MainActivityAI : AppCompatActivity() {
             TicTacToeGame.DifficultyLevel.values()[sharedPreferences.getInt("difficultyLevel", 2)]
         )
 
-        statsTextView.text = "Victorias: Usuario $userWins | Máquina $aiWins | Empates $draws"
+        statsTextView.text = "Wins: User $userWins  |  Gipeto AI $aiWins  |  Draws $draws"
 
     }
 
@@ -121,7 +121,7 @@ class MainActivityAI : AppCompatActivity() {
 
     private fun toggleMute(item: MenuItem) {
         isMuted = !isMuted
-        item.title = if (isMuted) "Activar Sonidos" else "Silenciar Sonidos"
+        item.title = if (isMuted) "Enable sounds" else "Mute sounds"
     }
 
     private fun handlePlayerMove(row: Int, col: Int) {
@@ -130,7 +130,7 @@ class MainActivityAI : AppCompatActivity() {
         if (game.makeMove(currentPlayer, row, col)) {
             if (!isMuted) playerMoveSound?.start() // Reproducir sonido de movimiento del jugador
             if (game.isWinner(currentPlayer)) {
-                gameMessage.text = "¡Jugador $currentPlayer ganó!"
+                gameMessage.text = "¡Player $currentPlayer wins!"
                 gameOver = true // Marcar el juego como terminado
                 val handler = android.os.Handler()
                 handler.postDelayed({
@@ -138,7 +138,7 @@ class MainActivityAI : AppCompatActivity() {
                 }, 700)
                 updateStats(winner = currentPlayer)
             } else if (isBoardFull()) {
-                gameMessage.text = "¡Empate!"
+                gameMessage.text = "It's a Draw!"
                 gameOver = true // Marcar el juego como terminado
                 updateStats(winner = null)
             } else {
@@ -151,7 +151,7 @@ class MainActivityAI : AppCompatActivity() {
     private fun handleAIMove() {
         if (gameOver) return // No permitir movimientos si el juego ha terminado
 
-        gameMessage.text = "La máquina está pensando..."
+        gameMessage.text = "Gipeto AI is thinking..."
         val handler = android.os.Handler()
         handler.postDelayed({
             val (aiRow, aiCol) = game.getComputerMove()
@@ -159,19 +159,19 @@ class MainActivityAI : AppCompatActivity() {
             if (!isMuted) aiMoveSound?.start() // Reproducir sonido de movimiento de la IA
 
             if (game.isWinner("O")) {
-                gameMessage.text = "¡La máquina ganó!"
+                gameMessage.text = "¡Gipeto AI wins!"
                 gameOver = true // Marcar el juego como terminado
                 handler.postDelayed({
                     if (!isMuted) loseSound?.start() // Reproducir sonido de derrota después de un delay
                 }, 700)
                 updateStats(winner = "O")
             } else if (isBoardFull()) {
-                gameMessage.text = "¡Empate!"
+                gameMessage.text = "It's a Draw!"
                 gameOver = true // Marcar el juego como terminado
                 updateStats(winner = null)
             } else {
                 currentPlayer = "X"
-                gameMessage.text = "Turno del jugador $currentPlayer"
+                gameMessage.text = "Turn player $currentPlayer"
             }
             boardView.invalidate() // Actualizar el tablero
         }, 2000) // 2000 ms = 2 segundos
@@ -181,7 +181,7 @@ class MainActivityAI : AppCompatActivity() {
         game.resetGame()
         currentPlayer = "X"
         gameOver = false // Reiniciar el estado del juego
-        gameMessage.text = "Turno de $currentPlayer"
+        gameMessage.text = "Turn player $currentPlayer"
         boardView.invalidate()
     }
 
@@ -195,7 +195,7 @@ class MainActivityAI : AppCompatActivity() {
             "O" -> aiWins++
             else -> draws++
         }
-        statsTextView.text = "Victorias: Usuario $userWins | Máquina $aiWins | Empates $draws"
+        statsTextView.text = "Wins: User $userWins  |  Gipeto AI $aiWins  |  Draws $draws"
     }
 
     private fun showDifficultyDialog() {
@@ -203,7 +203,7 @@ class MainActivityAI : AppCompatActivity() {
         val selected = levels.indexOf(game.getDifficultyLevel())
 
         AlertDialog.Builder(this)
-            .setTitle("Selecciona la dificultad")
+            .setTitle("Select Difficulty")
             .setSingleChoiceItems(levels.map { it.name }.toTypedArray(), selected) { dialog, which ->
                 game.setDifficultyLevel(levels[which])
                 dialog.dismiss()
@@ -214,7 +214,6 @@ class MainActivityAI : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // Liberar recursos de MediaPlayer
         playerMoveSound?.release()
         aiMoveSound?.release()
         winSound?.release()
@@ -243,7 +242,7 @@ class MainActivityAI : AppCompatActivity() {
         aiWins = savedInstanceState.getInt("aiWins")
         draws = savedInstanceState.getInt("draws")
         gameMessage.text = savedInstanceState.getString("gameMessage") ?: ""
-        statsTextView.text = "Victorias: Usuario $userWins | Máquina $aiWins | Empates $draws"
+        statsTextView.text = "Wins: User $userWins  |  Gipeto AI $aiWins  |  Draws $draws"
         boardView.invalidate()
     }
 
