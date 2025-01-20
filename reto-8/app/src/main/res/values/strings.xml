@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Empresa</string>
+    <string name="title_activity_empresa_list_screen">EmpresaListScreen</string>
+    <string name="title_activity_empresa_form_screen">EmpresaFormScreen</string>
+    <string name="title_activity_company_screen">CompanyScreen</string>
+    <string name="title_activity_company_dialog">CompanyDialog</string>
+</resources>
