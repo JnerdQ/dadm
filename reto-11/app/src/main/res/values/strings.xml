@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ai</string>
+    <string name="title_activity_gemini_screen">GeminiScreen</string>
+    <string name="title_activity_welcome_screen">WelcomeScreen</string>
+</resources>
